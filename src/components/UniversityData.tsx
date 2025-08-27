@@ -54,10 +54,10 @@ export default function UniversityData() {
                 
                 console.log('Excel Headers:', headers); // Debug the actual headers
                 
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+                const jsonData = XLSX.utils.sheet_to_json<ExcelRow>(worksheet, { 
                     raw: false,
                     defval: ''
-                }) as ExcelRow[];
+                });
                 
                 console.log('Excel Data:', jsonData); // Debug the parsed data
 
@@ -65,9 +65,6 @@ export default function UniversityData() {
                 
                 // Skip the first two rows (header rows)
                 jsonData.slice(2).forEach((row) => {
-                    // Log each row to debug
-                    console.log('Processing row:', row);
-                    
                     const institutionName = row.__EMPTY; // Institution Name
                     const courseName = row.__EMPTY_2; // Course Name
                     const courseCode = row.__EMPTY_1; // CRICOS Course Code
@@ -83,7 +80,7 @@ export default function UniversityData() {
                     }
                 });
 
-                const universitiesData: University[] = Array.from(universityMap).map(([name, courses]) => ({
+                const universitiesData: University[] = Array.from(universityMap.entries()).map(([name, courses]) => ({
                     institutionName: name,
                     courses: courses
                 }));

@@ -7,6 +7,15 @@ interface University {
     courses: string[];
 }
 
+interface ExcelRow {
+    Courses: string;           // Provider Code
+    __EMPTY: string;          // Institution Name
+    __EMPTY_1: string;        // CRICOS Course Code
+    __EMPTY_2: string;        // Course Name
+    __EMPTY_3: string;        // VET National Code
+    [key: string]: string;    // For any other columns
+}
+
 export default function UniversityData() {
     const [universities, setUniversities] = useState<University[]>([]);
     const [error, setError] = useState<string>('');
@@ -48,39 +57,32 @@ export default function UniversityData() {
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
                     raw: false,
                     defval: ''
-                });
+                }) as ExcelRow[];
                 
                 console.log('Excel Data:', jsonData); // Debug the parsed data
-                
-                // Process the data to group courses by institution
+
                 const universityMap = new Map<string, string[]>();
                 
                 // Skip the first two rows (header rows)
-                jsonData.slice(2).forEach((row: any) => {
+                jsonData.slice(2).forEach((row) => {
                     // Log each row to debug
                     console.log('Processing row:', row);
                     
-                    const institutionName = row['__EMPTY']; // Institution Name
-                    const courseName = row['__EMPTY_2']; // Course Name
-                    const courseCode = row['__EMPTY_1']; // CRICOS Course Code
-                    const providerCode = row['Courses']; // Provider Code
+                    const institutionName = row.__EMPTY; // Institution Name
+                    const courseName = row.__EMPTY_2; // Course Name
+                    const courseCode = row.__EMPTY_1; // CRICOS Course Code
+                    const providerCode = row.Courses; // Provider Code
                     
                     if (institutionName && courseName) {
-                        console.log('Found valid data:', { institutionName, courseName, courseCode, providerCode });
-                        
                         const fullInstitutionName = `${institutionName} (${providerCode})`;
                         if (!universityMap.has(fullInstitutionName)) {
                             universityMap.set(fullInstitutionName, []);
                         }
-                        // Include course code in the display
                         const courseInfo = `${courseName} (${courseCode})`;
                         universityMap.get(fullInstitutionName)?.push(courseInfo);
-                    } else {
-                        console.log('Skipping row due to missing data:', { institutionName, courseName });
                     }
                 });
-                
-                // Convert map to array of University objects
+
                 const universitiesData: University[] = Array.from(universityMap).map(([name, courses]) => ({
                     institutionName: name,
                     courses: courses
